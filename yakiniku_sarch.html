@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<script>
+/* =====================================================================
+   焼肉の女 1話S6 赤奈スマホ検索画面（Sarch） 設定
+   ここを書き換えれば文言・色・タイミングを調整できます
+   ===================================================================== */
+const CONFIG = {
+  // サービス名とロゴ（1文字ずつ順に色を当てる。文字数より色が少ない場合は繰り返し）
+  serviceName: "Sarch",
+  logoColors: ["#d65a4e", "#e9a04b", "#4f9e8f", "#4a72d8", "#8a5bd0"],
+  accentColor: "#4a72d8",      // 読み込みバー・選択タブ・ショートカットアイコンの色
+  linkColor: "#1a47c8",        // 検索結果タイトルの青
+
+  // ステータスバー（時刻・電波・バッテリー）。true にすると表示
+  showStatusBar: false,
+  statusTime: "10:24",         // 空文字 "" にすると現在時刻を表示
+  batteryLevel: 0.72,          // 0〜1
+
+  // 検索ワードとタイミング（ミリ秒）
+  query: "最近 配信開始 映画 話題",
+  typeStartDelay: 600,         // 再生してから入力が始まるまで
+  typeSpeed: 220,              // 1文字ごとの間隔
+  typeJitter: 90,              // 入力間隔のばらつき（0で一定）
+  searchDelay: 900,            // 入力完了から検索開始まで
+  loadDuration: 1100,          // 読み込みバーが走る時間
+
+  // 検索トップ
+  placeholder: "検索またはURLを入力",
+  shortcuts: ["天気", "ニュース", "乗換", "翻訳"],
+
+  // 検索結果
+  tabs: ["すべて", "動画", "画像", "ニュース", "ショッピング"],
+  countText: "約 1,240,000 件（0.38 秒）",
+  results: [
+    {
+      icon: "シ", iconColor: "#e0566b",
+      site: "シネマノート",
+      url: "https://cinemanote-web.jp › news",
+      title: "今週から配信開始！話題の映画『夜明けのレシピ』を徹底紹介",
+      desc: "配信直後からランキング上位に入った『夜明けのレシピ』。小さな食堂を舞台に家族の再生を描いた感動作の見どころとキャストをまとめました。"
+    },
+    {
+      icon: "エ", iconColor: "#3a8fd8",
+      site: "エイガログ",
+      url: "https://eigalog-media.jp › feature",
+      title: "【今月の注目】最近配信が始まった話題の映画まとめ10選",
+      desc: "『海辺のアルゴリズム』『ガラスの午後』など、配信がスタートしたばかりの注目作を一挙紹介。あらすじと配信サービスもチェックできます。"
+    },
+    {
+      icon: "配", iconColor: "#4aa36b",
+      site: "配信ナビ",
+      url: "https://haishin-navi.net › movie",
+      title: "『海辺のアルゴリズム』配信開始　SNSで「泣ける」と話題に",
+      desc: "劇場公開時に口コミで話題を集めた青春映画がついに配信開始。ラスト10分の展開に、視聴者から反響が相次いでいます。"
+    },
+    {
+      icon: "ム", iconColor: "#8a5cc8",
+      site: "ムービーポスト",
+      url: "https://moviepost-jp.com › review",
+      title: "話題作『ガラスの午後』レビュー｜配信で観るべき3つの理由",
+      desc: "静かな会話劇ながら、じわじわと評価を上げている『ガラスの午後』。配信で何度も見返したくなる演出の魅力を解説します。"
+    }
+  ]
+};
+</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Sarch</title>
+<style>
+  :root{
+    --u: calc(min(100vw, 100vh * 0.462085) / 390);
+    --c1:#1f6f78; --c2:#ef7d45; --accent:#1f6f78; --link:#1a47c8;
+    --text:#202124; --sub:#5f6368; --line:#e3e5e8;
+  }
+  @supports (height: 100dvh){ :root{ --u: calc(min(100vw, 100dvh * 0.462085) / 390); } }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body{ width:100%; height:100%; background:#000; overflow:hidden; }
+  body{
+    display:flex; align-items:center; justify-content:center;
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Yu Gothic",Meiryo,"Noto Sans JP",sans-serif;
+    color:var(--text); user-select:none; -webkit-user-select:none;
+  }
+  body.nocursor, body.nocursor *{ cursor:none !important; }
+  #phone{
+    position:relative; width:calc(390 * var(--u)); height:calc(844 * var(--u));
+    background:#fff; overflow:hidden;
+  }
+  svg{ display:block; }
+
+  /* ステータスバー */
+  .status{
+    position:absolute; top:0; left:0; right:0; height:calc(50 * var(--u));
+    display:flex; align-items:center; justify-content:space-between;
+    padding:calc(6 * var(--u)) calc(30 * var(--u)) 0 calc(34 * var(--u)); z-index:5; background:#fff;
+  }
+  .status .time{ font-size:calc(16 * var(--u)); font-weight:600; letter-spacing:.02em; }
+  .status .icons{ display:flex; align-items:center; gap:calc(6 * var(--u)); }
+  .status .icons svg{ height:calc(12 * var(--u)); width:auto; }
+  .status .icons svg.bat{ height:calc(13 * var(--u)); }
+
+  #loadbar{
+    position:absolute; top:calc(50 * var(--u)); left:0; height:calc(3 * var(--u));
+    width:0; background:var(--accent); z-index:6; opacity:0;
+  }
+
+  .screen{ position:absolute; top:calc(50 * var(--u)); left:0; right:0; bottom:0; display:none; }
+  body.nostatus .status{ display:none; }
+  body.nostatus #loadbar{ top:0; }
+  body.nostatus .screen{ top:0; }
+  body.nostatus .rhead{ padding-top:calc(18 * var(--u)); }
+  .screen.active{ display:block; }
+
+  /* 画面1：トップ */
+  #top .logo{
+    position:absolute; top:calc(190 * var(--u)); left:0; right:0; text-align:center;
+    font-size:calc(58 * var(--u)); font-weight:700; letter-spacing:-0.02em; line-height:1;
+    cursor:pointer;
+  }
+  .logo .a{ color:var(--c1); } .logo .b{ color:var(--c2); }
+  #top .bar{
+    position:absolute; top:calc(290 * var(--u)); left:calc(22 * var(--u)); right:calc(22 * var(--u));
+    height:calc(54 * var(--u)); border-radius:calc(27 * var(--u));
+    border:1px solid #dadce0; background:#fff;
+    box-shadow:0 calc(2 * var(--u)) calc(8 * var(--u)) rgba(0,0,0,.10);
+    display:flex; align-items:center; padding:0 calc(16 * var(--u)); gap:calc(10 * var(--u));
+  }
+  .bar .ic{ width:calc(22 * var(--u)); height:calc(22 * var(--u)); color:#80868b; flex:none; }
+  .bar .ic svg{ width:100%; height:100%; }
+  #q{
+    flex:1; min-width:0; border:none; outline:none; background:transparent;
+    font-family:inherit; font-size:calc(17 * var(--u)); color:var(--text);
+    caret-color:var(--accent); user-select:text; -webkit-user-select:text;
+  }
+  #q::placeholder{ color:#9aa0a6; }
+  .shortcuts{
+    position:absolute; top:calc(392 * var(--u)); left:calc(30 * var(--u)); right:calc(30 * var(--u));
+    display:flex; justify-content:space-between;
+  }
+  .sc{ width:calc(70 * var(--u)); display:flex; flex-direction:column; align-items:center; gap:calc(8 * var(--u)); }
+  .sc .circle{
+    width:calc(58 * var(--u)); height:calc(58 * var(--u)); border-radius:50%;
+    background:#f1f3f4; display:flex; align-items:center; justify-content:center; color:var(--c1);
+  }
+  .sc .circle svg{ width:calc(28 * var(--u)); height:calc(28 * var(--u)); }
+  .sc span{ font-size:calc(12.5 * var(--u)); color:#3c4043; }
+
+  /* 画面2：結果 */
+  #results{ overflow-y:auto; scrollbar-width:none; }
+  #results::-webkit-scrollbar{ display:none; }
+  .rhead{ display:flex; align-items:center; justify-content:space-between; padding:calc(10 * var(--u)) calc(18 * var(--u)) 0; }
+  .rhead .logo{ font-size:calc(26 * var(--u)); font-weight:700; letter-spacing:-0.02em; line-height:1; cursor:pointer; }
+  .rhead .menu{ width:calc(24 * var(--u)); height:calc(24 * var(--u)); color:#5f6368; }
+  .rbar{
+    margin:calc(12 * var(--u)) calc(16 * var(--u)) 0; height:calc(46 * var(--u));
+    border-radius:calc(23 * var(--u)); border:1px solid #dadce0;
+    box-shadow:0 calc(1 * var(--u)) calc(5 * var(--u)) rgba(0,0,0,.08);
+    display:flex; align-items:center; padding:0 calc(14 * var(--u)); gap:calc(10 * var(--u)); cursor:text;
+  }
+  .rbar .ic{ width:calc(20 * var(--u)); height:calc(20 * var(--u)); color:#80868b; flex:none; }
+  .rbar .ic svg{ width:100%; height:100%; }
+  #rq{ flex:1; min-width:0; font-size:calc(16 * var(--u)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tabs{
+    display:flex; gap:calc(22 * var(--u)); padding:0 calc(20 * var(--u));
+    margin-top:calc(10 * var(--u)); border-bottom:1px solid var(--line); white-space:nowrap; overflow:hidden;
+  }
+  .tab{ font-size:calc(14 * var(--u)); color:var(--sub); padding:calc(11 * var(--u)) 0 calc(10 * var(--u)); position:relative; }
+  .tab.on{ color:var(--accent); font-weight:600; }
+  .tab.on::after{
+    content:""; position:absolute; left:0; right:0; bottom:-1px; height:calc(3 * var(--u));
+    border-radius:calc(3 * var(--u)) calc(3 * var(--u)) 0 0; background:var(--accent);
+  }
+  .count{ font-size:calc(12.5 * var(--u)); color:#70757a; padding:calc(12 * var(--u)) calc(20 * var(--u)) calc(2 * var(--u)); }
+  .item{ padding:calc(14 * var(--u)) calc(20 * var(--u)) calc(16 * var(--u)); border-bottom:calc(6 * var(--u)) solid #f3f4f6; }
+  .item:last-child{ border-bottom:none; padding-bottom:calc(40 * var(--u)); }
+  .src{ display:flex; align-items:center; gap:calc(10 * var(--u)); }
+  .fav{
+    width:calc(28 * var(--u)); height:calc(28 * var(--u)); border-radius:50%; flex:none;
+    color:#fff; font-size:calc(13 * var(--u)); font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .src .meta{ min-width:0; }
+  .src .site{ font-size:calc(13.5 * var(--u)); color:#202124; line-height:1.3; }
+  .src .url{ font-size:calc(11.5 * var(--u)); color:#4d5156; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ttl{ margin-top:calc(9 * var(--u)); font-size:calc(17 * var(--u)); line-height:1.4; color:var(--link); font-weight:500; }
+  .desc{
+    margin-top:calc(6 * var(--u)); font-size:calc(13.5 * var(--u)); line-height:1.6; color:#4d5156;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+
+  #help{
+    position:fixed; left:8px; bottom:8px; z-index:20;
+    font-size:11px; line-height:1.5; color:rgba(255,255,255,.75);
+    background:rgba(0,0,0,.55); padding:6px 9px; border-radius:6px; pointer-events:none;
+  }
+  #help.hide{ display:none; }
+</style>
+</head>
+<body>
+<div id="phone">
+  <div class="status">
+    <div class="time" id="time">10:24</div>
+    <div class="icons">
+      <svg viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#000"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#000"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#000"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#000"/></svg>
+      <svg viewBox="0 0 16 12"><path d="M8 11.5l2.3-2.6a3.4 3.4 0 0 0-4.6 0z" fill="#000"/><path d="M2.6 5.8a7.8 7.8 0 0 1 10.8 0" fill="none" stroke="#000" stroke-width="1.8" stroke-linecap="round"/><path d="M4.9 8.3a4.4 4.4 0 0 1 6.2 0" fill="none" stroke="#000" stroke-width="1.8" stroke-linecap="round"/><path d="M.6 3.4a10.8 10.8 0 0 1 14.8 0" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <svg class="bat" viewBox="0 0 27 13"><rect x=".6" y=".6" width="23" height="11.8" rx="3.4" fill="none" stroke="#000" stroke-opacity=".4" stroke-width="1.2"/><rect id="batfill" x="2.2" y="2.2" width="14" height="8.6" rx="2" fill="#000"/><path d="M25 4.5v4a2 2 0 0 0 0-4z" fill="#000" fill-opacity=".45"/></svg>
+    </div>
+  </div>
+  <div id="loadbar"></div>
+
+  <!-- 画面1：検索トップ -->
+  <section id="top" class="screen active">
+    <div class="logo" id="logoTop"></div>
+    <div class="bar">
+      <div class="ic"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M15.4 15.4L20.5 20.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></div>
+      <input id="q" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+      <div class="ic"><svg viewBox="0 0 24 24"><rect x="9" y="2.5" width="6" height="11.5" rx="3" fill="currentColor"/><path d="M5.8 11a6.2 6.2 0 0 0 12.4 0M12 17.4V21M8.8 21h6.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+    </div>
+    <div class="shortcuts" id="shortcuts"></div>
+  </section>
+
+  <!-- 画面2：検索結果 -->
+  <section id="results" class="screen">
+    <div class="rhead">
+      <div class="logo" id="logoSmall"></div>
+      <div class="menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+    </div>
+    <div class="rbar" id="rbar">
+      <div class="ic"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M15.4 15.4L20.5 20.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></div>
+      <div id="rq"></div>
+      <div class="ic"><svg viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <div class="ic"><svg viewBox="0 0 24 24"><rect x="9" y="2.5" width="6" height="11.5" rx="3" fill="currentColor"/><path d="M5.8 11a6.2 6.2 0 0 0 12.4 0M12 17.4V21M8.8 21h6.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+    </div>
+    <div class="tabs" id="tabs"></div>
+    <div class="count" id="count"></div>
+    <div id="list"></div>
+  </section>
+</div>
+
+<div id="help">Space：自動入力で再生　R：結果画面　0：トップに戻る<br>Esc：入力から抜ける　H：この説明を消す　（ロゴをタップでも再生）</div>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const root = document.documentElement.style;
+  root.setProperty('--c1', CONFIG.accentColor);
+  root.setProperty('--accent', CONFIG.accentColor);
+  root.setProperty('--link', CONFIG.linkColor);
+  document.title = CONFIG.serviceName;
+
+  // ロゴ
+  function fillLogo(el){
+    const cols = CONFIG.logoColors;
+    el.innerHTML = '';
+    [...CONFIG.serviceName].forEach((ch,i)=>{
+      const s = document.createElement('span');
+      s.style.color = cols[i % cols.length]; s.textContent = ch;
+      el.appendChild(s);
+    });
+  }
+  fillLogo($('#logoTop')); fillLogo($('#logoSmall'));
+
+  // ステータスバー
+  if (!CONFIG.showStatusBar) document.body.classList.add('nostatus');
+  function updTime(){
+    if (CONFIG.statusTime) { $('#time').textContent = CONFIG.statusTime; return; }
+    const d = new Date(); $('#time').textContent = d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0');
+  }
+  updTime(); if (!CONFIG.statusTime) setInterval(updTime, 10000);
+  $('#batfill').setAttribute('width', (19.6 * Math.max(0, Math.min(1, CONFIG.batteryLevel))).toFixed(1));
+
+  // ショートカット
+  const scIcons = [
+    '<svg viewBox="0 0 28 28"><circle cx="11" cy="10" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M11 2.2v2M3.2 10h2M5.5 4.5l1.4 1.4M16.5 4.5l-1.4 1.4"/></g><path d="M9.5 23.5h11.8a4.2 4.2 0 0 0 .3-8.4 6 6 0 0 0-11.4 1.6 3.4 3.4 0 0 0-.7 6.8z" fill="#fff" stroke="currentColor" stroke-width="1.8"/></svg>',
+    '<svg viewBox="0 0 28 28"><rect x="4" y="5" width="17" height="18.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M21 10h3v11a2.5 2.5 0 0 1-5 0" fill="none" stroke="currentColor" stroke-width="1.9"/><rect x="7.5" y="8.5" width="10" height="5" rx="1" fill="currentColor"/><path d="M7.5 16.5h10M7.5 19.8h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    '<svg viewBox="0 0 28 28"><rect x="6.5" y="3.5" width="15" height="17" rx="4" fill="none" stroke="currentColor" stroke-width="1.9"/><rect x="9" y="6.5" width="10" height="5.5" rx="1.2" fill="currentColor"/><circle cx="10.5" cy="16" r="1.5" fill="currentColor"/><circle cx="17.5" cy="16" r="1.5" fill="currentColor"/><path d="M9.5 20.5L7 25M18.5 20.5L21 25M8.5 23.5h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    '<svg viewBox="0 0 28 28"><rect x="3" y="4" width="14" height="14" rx="2.5" fill="currentColor"/><text x="10" y="15.3" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" font-family="Hiragino Sans,Yu Gothic,Meiryo,sans-serif">文</text><rect x="11.5" y="11" width="13.5" height="13.5" rx="2.5" fill="#fff" stroke="currentColor" stroke-width="1.8"/><text x="18.25" y="21.6" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="Helvetica,Arial,sans-serif">A</text></svg>'
+  ];
+  const scWrap = $('#shortcuts');
+  CONFIG.shortcuts.slice(0,4).forEach((label,i)=>{
+    const d = document.createElement('div'); d.className = 'sc';
+    d.innerHTML = '<div class="circle">' + scIcons[i] + '</div>';
+    const s = document.createElement('span'); s.textContent = label; d.appendChild(s);
+    scWrap.appendChild(d);
+  });
+
+  // 結果画面
+  const tabs = $('#tabs');
+  CONFIG.tabs.forEach((t,i)=>{ const d=document.createElement('div'); d.className='tab'+(i===0?' on':''); d.textContent=t; tabs.appendChild(d); });
+  $('#count').textContent = CONFIG.countText;
+  const list = $('#list');
+  CONFIG.results.slice(0,4).forEach(r=>{
+    const it = document.createElement('div'); it.className = 'item';
+    const src = document.createElement('div'); src.className = 'src';
+    const fav = document.createElement('div'); fav.className = 'fav'; fav.style.background = r.iconColor; fav.textContent = r.icon;
+    const meta = document.createElement('div'); meta.className = 'meta';
+    const site = document.createElement('div'); site.className = 'site'; site.textContent = r.site;
+    const url = document.createElement('div'); url.className = 'url'; url.textContent = r.url;
+    meta.append(site, url); src.append(fav, meta);
+    const ttl = document.createElement('div'); ttl.className = 'ttl'; ttl.textContent = r.title;
+    const desc = document.createElement('div'); desc.className = 'desc'; desc.textContent = r.desc;
+    it.append(src, ttl, desc); list.appendChild(it);
+  });
+
+  // 動作
+  const input = $('#q');
+  input.placeholder = CONFIG.placeholder;
+  const bar = $('#loadbar');
+  let token = 0, auto = false;
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  function show(id){
+    document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
+  }
+  function hideBar(){ bar.style.transition = 'none'; bar.style.width = '0'; bar.style.opacity = '0'; }
+  function showTop(keep){
+    token++; auto = false; hideBar();
+    if (!keep) input.value = '';
+    input.blur(); show('top');
+  }
+  function showResults(q){
+    hideBar();
+    $('#rq').textContent = q; $('#results').scrollTop = 0; show('results');
+  }
+  async function doSearch(q, my){
+    input.blur(); auto = false;
+    bar.style.transition = 'none'; bar.style.width = '0'; bar.style.opacity = '1';
+    void bar.offsetWidth;
+    bar.style.transition = 'width ' + CONFIG.loadDuration + 'ms cubic-bezier(.3,.6,.4,1)';
+    bar.style.width = '100%';
+    await sleep(CONFIG.loadDuration); if (my !== token) return;
+    $('#rq').textContent = q; $('#results').scrollTop = 0; show('results');
+    bar.style.transition = 'opacity 250ms'; bar.style.opacity = '0';
+  }
+  async function autoPlay(){
+    showTop(false);
+    const my = ++token; auto = true;
+    input.focus({preventScroll:true});
+    await sleep(CONFIG.typeStartDelay);
+    for (const ch of CONFIG.query){
+      if (my !== token) return;
+      input.value += ch;
+      const L = input.value.length; try{ input.setSelectionRange(L, L); }catch(e){}
+      input.scrollLeft = input.scrollWidth;
+      await sleep(Math.max(30, CONFIG.typeSpeed + (Math.random()*2-1) * CONFIG.typeJitter));
+    }
+    await sleep(CONFIG.searchDelay); if (my !== token) return;
+    doSearch(input.value, my);
+  }
+
+  input.addEventListener('mousedown', ()=>{ if (auto){ token++; auto = false; } });
+  input.addEventListener('keydown', e=>{
+    if (e.key === 'Escape'){ e.preventDefault(); token++; auto = false; input.blur(); return; }
+    if (auto){ e.preventDefault(); return; }
+    if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229){
+      e.preventDefault();
+      const q = input.value.trim(); if (q){ const my = ++token; doSearch(q, my); }
+    }
+    e.stopPropagation();
+  });
+  document.addEventListener('keydown', e=>{
+    if (document.activeElement === input) return;
+    if (e.code === 'Space'){ e.preventDefault(); autoPlay(); }
+    else if (e.key === 'r' || e.key === 'R'){ token++; auto = false; input.value = CONFIG.query; showResults(CONFIG.query); }
+    else if (e.key === '0'){ showTop(false); }
+    else if (e.key === 'Escape'){ token++; auto = false; input.blur(); }
+    else if (e.key === 'h' || e.key === 'H'){ $('#help').classList.toggle('hide'); }
+  });
+  $('#logoTop').addEventListener('click', autoPlay);
+  $('#logoSmall').addEventListener('click', ()=>showTop(false));
+  $('#rbar').addEventListener('click', ()=>{ showTop(true); input.focus(); });
+
+  // マウスを2秒動かさないとカーソルを隠す（撮影用）
+  let ct; const wake = ()=>{ document.body.classList.remove('nocursor'); clearTimeout(ct); ct = setTimeout(()=>document.body.classList.add('nocursor'), 2000); };
+  document.addEventListener('mousemove', wake); wake();
+})();
+</script>
+</body>
+</html>
